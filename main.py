@@ -11,6 +11,7 @@ from utils.clob_client_and_order import (
     cache_tocken_trading_infos,
 )
 from utils.cpu_affinity import set_cpu_affinity
+from config import MAX_TRADES
 
 
 gc.disable()
@@ -25,7 +26,6 @@ requests.options = session.options
 
 
 async def main():
-    max_trades = 1
     trades = 0
 
     logger = setup_logging()
@@ -59,6 +59,7 @@ async def main():
             logger.info("Trading session ended. Starting new session.")
             gc.collect()
             await asyncio.sleep(10)
+            trades = 0
             up_token, down_token, market_slug = await fetch_tokens()
             book = OrderBook(up_token, down_token, market_slug)
             asyncio.create_task(cache_tocken_trading_infos(client, book))
@@ -77,7 +78,7 @@ async def main():
         down_ask_price = 1 - up_bid_price
         down_bid_price = 1 - up_ask_price
 
-        if trades < max_trades:
+        if trades < MAX_TRADES:
             trading_side = book.last_signal
 
             if trading_side == SIGNALES.UP:
