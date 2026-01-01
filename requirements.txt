@@ -1,0 +1,5 @@
+py-clob-client
+aiohttp
+websocket-client
+pytz
+uvloop

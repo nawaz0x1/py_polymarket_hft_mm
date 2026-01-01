@@ -110,7 +110,12 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        try:
+            import uvloop
+
+            uvloop.run(main())
+        except ImportError:
+            asyncio.run(main())
     except KeyboardInterrupt:
         print("\nMarket maker stopped by user")
     except Exception as e:
