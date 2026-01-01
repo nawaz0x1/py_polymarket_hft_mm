@@ -16,13 +16,13 @@ SIGNATURE_TYPE = os.getenv("SIGNATURE_TYPE")
 logger = logging.getLogger(__name__)
 
 
-async def init_clob_client() -> ClobClient:
+def init_clob_client() -> ClobClient:
     try:
         client = ClobClient(
             POLYMARKET_HOST,
             key=PRIVATE_KEY,
             chain_id=CHAIN_ID,
-            signature_type=SIGNATURE_TYPE,
+            signature_type=int(SIGNATURE_TYPE),
             funder=POLYMARKET_PROXY_ADDRESS,
         )
         client.set_api_creds(client.create_or_derive_api_creds())
@@ -34,16 +34,17 @@ async def init_clob_client() -> ClobClient:
 
 
 async def cache_tocken_trading_infos(
-    client: ClobClient, up_token_id: str, down_token_id: str
+    client: ClobClient,
+    order_book,
 ) -> None:
-    while True:
-        client.get_tick_size(up_token_id)
-        client.get_tick_size(down_token_id)
-        client.get_neg_risk(up_token_id)
-        client.get_neg_risk(down_token_id)
-        client.get_fee_rate_bps(up_token_id)
-        client.get_fee_rate_bps(down_token_id)
-        await asyncio.sleep(10)
+
+    up_token_id, down_token_id = order_book.up_token_id, order_book.down_token_id
+    client.get_tick_size(up_token_id)
+    client.get_tick_size(down_token_id)
+    client.get_neg_risk(up_token_id)
+    client.get_neg_risk(down_token_id)
+    client.get_fee_rate_bps(up_token_id)
+    client.get_fee_rate_bps(down_token_id)
 
 
 async def place_anchor_and_hedge(

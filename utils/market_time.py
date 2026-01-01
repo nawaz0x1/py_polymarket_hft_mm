@@ -10,4 +10,4 @@ def get_period_elapsed_seconds():
 
 def is_in_trading_window():
     elapsed_seconds = get_period_elapsed_seconds()
-    return elapsed_seconds > MARKET_SESSION_SECONDS
+    return elapsed_seconds < (MARKET_SESSION_SECONDS - 5)
