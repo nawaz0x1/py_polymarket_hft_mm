@@ -1,9 +1,6 @@
 import pytz
 from datetime import datetime
-
-
-MARKET_INTERVAL_SECONDS = 900
-TIMEZONE = "US/Eastern"
+from config import MARKET_SESSION_SECONDS, TIMEZONE
 
 
 def get_market_slug(coin: str = "btc") -> str:
@@ -14,5 +11,5 @@ def get_market_slug(coin: str = "btc") -> str:
     et_tz = pytz.timezone(TIMEZONE)
     now = datetime.now(et_tz)
     ts = int(now.timestamp())
-    start = (ts // MARKET_INTERVAL_SECONDS) * MARKET_INTERVAL_SECONDS
+    start = (ts // MARKET_SESSION_SECONDS) * MARKET_SESSION_SECONDS
     return f"{coin.lower()}-updown-15m-{start}"

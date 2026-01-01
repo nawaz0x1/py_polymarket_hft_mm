@@ -4,6 +4,7 @@ from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
 from utils.clob_client import init_clob_client
 from utils.orderbook import OrderBook
+from utils.market_time import is_in_trading_window
 
 
 async def main():
@@ -16,7 +17,16 @@ async def main():
     book.start()
 
     while True:
-        await asyncio.sleep(10)
+        if not is_in_trading_window():
+
+            book.stop()
+            logger.info("Trading session ended. Starting new session.")
+
+            up_token, down_token, market_slug = await fetch_tokens()
+            book = OrderBook(up_token, down_token, market_slug)
+            book.start()
+
+        await asyncio.sleep(1)
 
 
 if __name__ == "__main__":
