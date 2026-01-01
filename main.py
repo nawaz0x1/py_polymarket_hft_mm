@@ -1,4 +1,4 @@
-import time
+import gc
 import asyncio
 import requests
 from utils.logger import setup_logging
@@ -10,8 +10,10 @@ from utils.clob_client_and_order import (
     place_anchor_and_hedge,
     cache_tocken_trading_infos,
 )
+from utils.cpu_affinity import set_cpu_affinity
 
 
+gc.disable()
 session = requests.Session()
 requests.get = session.get
 requests.post = session.post
@@ -27,6 +29,7 @@ async def main():
     trades = 0
 
     logger = setup_logging()
+    set_cpu_affinity()
     logger.info("Polymarket HFT Market Maker started")
 
     up_token, down_token, market_slug = await fetch_tokens()
@@ -54,6 +57,7 @@ async def main():
 
             book.stop()
             logger.info("Trading session ended. Starting new session.")
+            gc.collect()
             await asyncio.sleep(10)
             up_token, down_token, market_slug = await fetch_tokens()
             book = OrderBook(up_token, down_token, market_slug)
