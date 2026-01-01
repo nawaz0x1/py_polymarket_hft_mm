@@ -1,6 +1,7 @@
 import asyncio
 from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
+from utils.clob_client import init_clob_client
 
 
 async def main():
@@ -8,6 +9,7 @@ async def main():
     logger.info("Polymarket HFT Market Maker started")
 
     up_token, down_token, market_slug = await fetch_tokens()
+    client = await init_clob_client()
 
 
 if __name__ == "__main__":
