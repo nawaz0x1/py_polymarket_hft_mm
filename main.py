@@ -70,7 +70,7 @@ async def main():
 
         up_bid_price = market_data["best_bid_price"]
         up_ask_price = market_data["best_ask_price"]
-        
+
         if not (0.1 < up_ask_price < 0.9):
             continue
 
@@ -86,7 +86,7 @@ async def main():
                     up_token,
                     down_token,
                     "UP",
-                    up_bid_price,
+                    up_ask_price,
                     size=5,
                 )
                 trades += 1
@@ -100,7 +100,7 @@ async def main():
                     up_token,
                     down_token,
                     "DOWN",
-                    down_bid_price,
+                    down_ask_price,
                     size=5,
                 )
                 trades += 1
