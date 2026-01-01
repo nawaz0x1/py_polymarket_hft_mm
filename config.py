@@ -1,6 +1,8 @@
 LOG_FOLDER = "logs/"
 GAMMA_API_URL = "https://gamma-api.polymarket.com"
 POLYMARKET_HOST = "https://clob.polymarket.com"
+POLYMARKET_WS_MARKET_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market"
 CHAIN_ID = 137
 REQUEST_TIMEOUT = 5
 PROFIT_MARGIN = 0.02
+TRADING_BPS_THRESHOLD = 50

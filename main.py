@@ -1,7 +1,9 @@
+import time
 import asyncio
 from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
 from utils.clob_client import init_clob_client
+from utils.orderbook import OrderBook
 
 
 async def main():
@@ -10,6 +12,11 @@ async def main():
 
     up_token, down_token, market_slug = await fetch_tokens()
     client = await init_clob_client()
+    book = OrderBook(up_token, down_token, market_slug)
+    book.start()
+
+    while True:
+        await asyncio.sleep(10)
 
 
 if __name__ == "__main__":
