@@ -199,7 +199,7 @@ class OrderBook:
                 if current_signal and current_signal != self.last_signal:
                     self.last_signal = current_signal
 
-                    if current_signal != SIGNALES.NEUTRAL:
+                    # if current_signal != SIGNALES.NEUTRAL:
                         # logger.info(
                         #     f"NEW SIGNAL: {current_signal} detected! ({micro_vs_mid_bps:.1f} bps)"
                         # )
