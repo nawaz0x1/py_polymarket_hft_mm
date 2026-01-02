@@ -46,11 +46,11 @@ def is_client_ready():
 
 def get_client():
     if _client is None:
-        init_clob_client()
+        init_global_client()
     return _client
 
 
 def get_client_creds():
     if _client_creds is None:
-        init_clob_client()
+        init_global_client()
     return _client_creds
