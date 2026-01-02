@@ -124,7 +124,7 @@ async def handle_message(message):
             not anchor_id
             or side != "BUY"
             or not outcome
-            or (status != "MATCHED")
+            or (status not in ["MATCHED", "CONFIRMED"])
             or (size < 1)
             or (price > 0.50)
         ):
