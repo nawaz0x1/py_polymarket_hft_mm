@@ -199,18 +199,6 @@ class OrderBook:
                 if current_signal and current_signal != self.last_signal:
                     self.last_signal = current_signal
 
-                    # if current_signal != SIGNALES.NEUTRAL:
-                        # logger.info(
-                        #     f"NEW SIGNAL: {current_signal} detected! ({micro_vs_mid_bps:.1f} bps)"
-                        # )
-
-                    # await self.execute_trading_signal(
-                    #     current_signal,
-                    #     market_data["micro_price"],
-                    #     market_data["mid_price"],
-                    #     market_data["best_bid_price"],
-                    # )
-
                 await asyncio.sleep(0.005)
 
             except Exception as e:
