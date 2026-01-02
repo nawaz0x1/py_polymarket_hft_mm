@@ -83,7 +83,7 @@ async def main():
         if trades < MAX_TRADES:
             trading_side = book.last_signal
 
-            if (trading_side == SIGNALES.UP) and (up_ask_price < down_ask_price):
+            if trading_side == SIGNALES.UP:
                 await place_anchor_and_hedge(
                     up_token,
                     down_token,
@@ -96,7 +96,7 @@ async def main():
                     f"Placed UP anchor and hedge orders. Total trades: {trades}"
                 )
 
-            elif (trading_side == SIGNALES.DOWN) and (down_ask_price < up_ask_price):
+            elif trading_side == SIGNALES.DOWN:
                 await place_anchor_and_hedge(
                     up_token,
                     down_token,
