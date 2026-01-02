@@ -34,8 +34,8 @@ async def main():
     set_cpu_affinity()
     logger.info("Polymarket HFT Market Maker started")
     init_global_client()
+    await asyncio.sleep(2)
     up_token, down_token, market_slug = await fetch_tokens()
-
     book = OrderBook(up_token, down_token, market_slug)
     await asyncio.create_task(cache_tocken_trading_infos(book))
     book.start()
