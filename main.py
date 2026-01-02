@@ -109,7 +109,7 @@ async def main():
                     f"Placed DOWN anchor and hedge orders. Total trades: {trades}"
                 )
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
 
 
 if __name__ == "__main__":
