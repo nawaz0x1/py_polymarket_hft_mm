@@ -74,7 +74,7 @@ async def main():
         up_bid_price = market_data["best_bid_price"]
         up_ask_price = market_data["best_ask_price"]
 
-        if not (0.1 < up_ask_price < 0.9):
+        if not ((0.1 < up_ask_price < 0.3) or (0.7 < up_bid_price < 0.9)):
             continue
 
         down_ask_price = 1 - up_bid_price
