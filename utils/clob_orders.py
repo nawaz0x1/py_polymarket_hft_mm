@@ -1,42 +1,19 @@
-import os
 import asyncio
 import logging
-from dotenv import load_dotenv
 from py_clob_client.client import ClobClient
 from py_clob_client.clob_types import OrderArgs
 from py_clob_client.order_builder.constants import BUY
-from config import POLYMARKET_HOST, CHAIN_ID, PROFIT_MARGIN
+from config import PROFIT_MARGIN, PLACE_OPPOSITE_ORDER
+from utils.clob_client import get_client
 
-load_dotenv()
-
-PRIVATE_KEY = os.getenv("PRIVATE_KEY")
-POLYMARKET_PROXY_ADDRESS = os.getenv("POLYMARKET_PROXY_ADDRESS")
-SIGNATURE_TYPE = os.getenv("SIGNATURE_TYPE")
 
 logger = logging.getLogger(__name__)
 
 
-def init_clob_client() -> ClobClient:
-    try:
-        client = ClobClient(
-            POLYMARKET_HOST,
-            key=PRIVATE_KEY,
-            chain_id=CHAIN_ID,
-            signature_type=int(SIGNATURE_TYPE),
-            funder=POLYMARKET_PROXY_ADDRESS,
-        )
-        client.set_api_creds(client.create_or_derive_api_creds())
-        logger.info("ClobClient initialized successfully")
-        return client
-    except Exception as e:
-        logger.error(f"Failed to initialize ClobClient: {e}")
-        return None
-
-
 async def cache_tocken_trading_infos(
-    client: ClobClient,
     order_book,
 ) -> None:
+    client = get_client()
 
     up_token_id, down_token_id = order_book.up_token_id, order_book.down_token_id
     client.get_tick_size(up_token_id)
@@ -48,7 +25,7 @@ async def cache_tocken_trading_infos(
 
 
 async def place_anchor_and_hedge(
-    client, up_token_id, down_token_id, anchor_side, price, size=5
+    up_token_id, down_token_id, anchor_side, price, size=5
 ):
     if anchor_side == "UP":
         anchor_token_id = up_token_id
@@ -57,15 +34,19 @@ async def place_anchor_and_hedge(
         anchor_token_id = down_token_id
         hedge_token_id = up_token_id
 
-    asyncio.create_task(place_limit_order(client, anchor_token_id, price, size))
-    asyncio.create_task(
-        place_limit_order(client, hedge_token_id, 1 - price - PROFIT_MARGIN, size)
-    )
+    asyncio.create_task(place_limit_order(anchor_token_id, price, size))
+    if PLACE_OPPOSITE_ORDER:
+        asyncio.create_task(
+            place_limit_order(hedge_token_id, 1 - price - PROFIT_MARGIN, size)
+        )
 
-    logger.info(f"Order prices: {price} and {1 - price - PROFIT_MARGIN}")
+        logger.info(f"Order prices: {price} and {1 - price - PROFIT_MARGIN}")
+    else:
+        logger.info(f"Order price: {price}")
 
 
-async def place_limit_order(client: ClobClient, token_id: str, price: float, size: int):
+async def place_limit_order(token_id: str, price: float, size: int):
+    client = get_client()
     start_time = asyncio.get_event_loop().time()
     try:
         response = client.create_and_post_order(
@@ -83,3 +64,4 @@ async def place_limit_order(client: ClobClient, token_id: str, price: float, siz
     logger.info(
         f"Order placed! ID: {response['orderID']} in {end_time - start_time:.2f} sec"
     )
+    return response["orderID"]

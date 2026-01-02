@@ -8,6 +8,7 @@ import threading
 import websocket
 from enum import Enum
 from config import POLYMARKET_WS_MARKET_URL, TRADING_BPS_THRESHOLD
+from utils.clob_client import get_client
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class OrderBook:
         self.down_token_id = down_token_id
         self.slug = slug
         self.ws_url = POLYMARKET_WS_MARKET_URL
-        self.client = None
+        self.client = get_client()
 
         self.orderbook = {
             "best_bid": 0.0,

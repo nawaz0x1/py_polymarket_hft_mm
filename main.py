@@ -1,12 +1,13 @@
+import os
 import gc
 import asyncio
 import requests
 from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
-from utils.clob_client_and_order import init_clob_client
 from utils.orderbook import OrderBook, SIGNALES
-from utils.market_time import is_in_trading_window, get_period_elapsed_seconds
-from utils.clob_client_and_order import (
+from utils.clob_client import init_global_client
+from utils.market_time import is_in_trading_window
+from utils.clob_orders import (
     place_anchor_and_hedge,
     cache_tocken_trading_infos,
 )
@@ -26,16 +27,17 @@ requests.options = session.options
 
 
 async def main():
+
     trades = 0
 
     logger = setup_logging()
     set_cpu_affinity()
     logger.info("Polymarket HFT Market Maker started")
-
+    init_global_client()
     up_token, down_token, market_slug = await fetch_tokens()
-    client = init_clob_client()
+
     book = OrderBook(up_token, down_token, market_slug)
-    await asyncio.create_task(cache_tocken_trading_infos(client, book))
+    await asyncio.create_task(cache_tocken_trading_infos(book))
     book.start()
 
     await asyncio.sleep(5)  # Allow some time for initial order book data
@@ -62,7 +64,7 @@ async def main():
             trades = 0
             up_token, down_token, market_slug = await fetch_tokens()
             book = OrderBook(up_token, down_token, market_slug)
-            asyncio.create_task(cache_tocken_trading_infos(client, book))
+            asyncio.create_task(cache_tocken_trading_infos(book))
             book.start()
 
         market_data = book.get_current_market_data()
@@ -83,7 +85,6 @@ async def main():
 
             if trading_side == SIGNALES.UP:
                 await place_anchor_and_hedge(
-                    client,
                     up_token,
                     down_token,
                     "UP",
@@ -97,7 +98,6 @@ async def main():
 
             elif trading_side == SIGNALES.DOWN:
                 await place_anchor_and_hedge(
-                    client,
                     up_token,
                     down_token,
                     "DOWN",
@@ -114,12 +114,12 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        try:
+        if os.name == "nt":
+            asyncio.run(main())
+        else:
             import uvloop
 
             uvloop.run(main())
-        except ImportError:
-            asyncio.run(main())
     except KeyboardInterrupt:
         print("\nMarket maker stopped by user")
     except Exception as e:
