@@ -125,7 +125,7 @@ async def handle_message(message):
             or side != "BUY"
             or not outcome
             or (status != "MATCHED")
-            or (price > 50)
+            or (price > 0.50)
         ):
             return
 
