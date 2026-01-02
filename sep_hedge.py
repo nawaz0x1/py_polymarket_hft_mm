@@ -120,12 +120,7 @@ async def handle_message(message):
         outcome = data.get("outcome")
         status = data.get("status")
 
-        if (
-            not anchor_id
-            or side != "BUY"
-            or not outcome
-            or (status not in ["MATCHED", "MINED", "CONFIRMED"])
-        ):
+        if not anchor_id or side != "BUY" or not outcome or (status != "MATCHED"):
             return
 
         async with state.lock:
