@@ -59,6 +59,7 @@ async def refresh_market_data():
                     state.hedged_anchors.clear()
                     state.processing_anchors.clear()
                     state.hedged_orders.clear()
+                gc.collect()
 
                 logger.info(
                     f"✅ Market Updated: Up={up_token[:10]}... Down={down_token[:10]}..."
