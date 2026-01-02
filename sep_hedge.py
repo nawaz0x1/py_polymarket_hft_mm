@@ -84,32 +84,42 @@ async def send_hedge(anchor_id, anchor_side, anchor_price, anchor_size):
 
     logger.info(f"⚡ SENDING HEDGE {hedge_side} @ ${hedge_price:.2f} ")
     hedge_order_id = None
-    while not hedge_order_id:
-        try:
-            args = OrderArgs(
-                price=hedge_price,
-                size=5,
-                side=BUY,
-                token_id=hedge_token,
-            )
-            signed = client.create_order(args)
-            res = client.post_order(signed, OrderType.GTC)
-            hedge_order_id = res.get("orderID")
 
-            async with state.lock:
-                state.processing_anchors.discard(anchor_id)
-                state.hedged_anchors.add(anchor_id)
-                if hedge_order_id:
+    try:
+        args = OrderArgs(
+            price=hedge_price,
+            size=5,
+            side=BUY,
+            token_id=hedge_token,
+        )
+        signed = client.create_order(args)
+
+        while not hedge_order_id:
+            try:
+
+                res = client.post_order(signed, OrderType.GTC)
+                hedge_order_id = res.get("orderID")
+
+                async with state.lock:
+                    state.processing_anchors.discard(anchor_id)
+                    state.hedged_anchors.add(anchor_id)
                     state.hedged_orders.add(hedge_order_id)
 
-            logger.info(f"✅ Hedge placed: {hedge_order_id}")
-            return hedge_order_id
-        except Exception as e:
-            logger.error(f"Hedge Order Error: {e}")
-            async with state.lock:
-                state.processing_anchors.discard(anchor_id)
-                state.hedged_anchors.add(anchor_id)
-            await asyncio.sleep(0.05)
+                logger.info(f"✅ Hedge placed: {hedge_order_id}")
+                return hedge_order_id
+
+            except Exception as e:
+                logger.error(f"Hedge Order Error: {e}")
+                await asyncio.sleep(0.5)
+
+    except Exception as e:
+        logger.error(f"Hedge Order Error: {e}")
+        async with state.lock:
+            state.processing_anchors.discard(anchor_id)
+            state.hedged_anchors.add(
+                anchor_id
+            )  # CRITICAL: Mark as processed to prevent retries
+        return None  
 
 
 async def handle_message(message):
