@@ -4,3 +4,4 @@ websocket-client
 pytz
 psutil
 uvloop
+websockets
