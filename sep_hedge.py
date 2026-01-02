@@ -126,7 +126,6 @@ async def handle_message(message):
             or not outcome
             or (status not in ["MATCHED", "CONFIRMED"])
             or (size < 1)
-            or (price > 0.50)
         ):
             return
 
