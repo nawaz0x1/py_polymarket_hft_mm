@@ -5,3 +5,10 @@ rm ~/miniconda3/miniconda.sh
 source ~/miniconda3/bin/activate
 conda init --all
 pip install -r requirements.txt
+sudo apt update -y
+sudo apt install build-essential curl -y
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source $HOME/.cargo/env
+cd in_memory_db
+rustc in_memory_db.rs -o in_memory_db
+cd ..
