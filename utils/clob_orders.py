@@ -38,7 +38,7 @@ async def place_anchor_and_hedge(
 
     anchor_order_id = await place_limit_order(anchor_token_id, price, size, expire=True)
     if PLACE_OPPOSITE_ORDER and anchor_order_id:
-        for _ in range(70 * 100):
+        for _ in range(65 * 10):
             if in_memory_db_contains_item(anchor_order_id):
                 hedge_order_id = await place_limit_order(
                     hedge_token_id, 1 - price - PROFIT_MARGIN, size
