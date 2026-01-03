@@ -80,10 +80,12 @@ async def main():
         down_ask_price = 1 - up_bid_price
         down_bid_price = 1 - up_ask_price
 
+        up_trend = up_bid_price > down_ask_price
+
         if trades < MAX_TRADES:
             trading_side = book.last_signal
 
-            if trading_side == SIGNALES.UP:
+            if (trading_side == SIGNALES.UP) and up_trend:
                 await place_anchor_and_hedge(
                     up_token,
                     down_token,
@@ -96,7 +98,7 @@ async def main():
                     f"Placed UP anchor and hedge orders. Total trades: {trades}"
                 )
 
-            elif trading_side == SIGNALES.DOWN:
+            elif (trading_side == SIGNALES.DOWN) and not up_trend:
                 await place_anchor_and_hedge(
                     up_token,
                     down_token,

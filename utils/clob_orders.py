@@ -5,6 +5,7 @@ from py_clob_client.clob_types import OrderArgs
 from py_clob_client.order_builder.constants import BUY
 from config import PROFIT_MARGIN, PLACE_OPPOSITE_ORDER
 from utils.clob_client import get_client
+from in_memory_db.utils import contains_item as in_memory_db_contains_item
 
 
 logger = logging.getLogger(__name__)
@@ -34,11 +35,15 @@ async def place_anchor_and_hedge(
         anchor_token_id = down_token_id
         hedge_token_id = up_token_id
 
-    asyncio.create_task(place_limit_order(anchor_token_id, price, size))
-    if PLACE_OPPOSITE_ORDER:
-        asyncio.create_task(
-            place_limit_order(hedge_token_id, 1 - price - PROFIT_MARGIN, size)
-        )
+    anchor_order_id = await place_limit_order(anchor_token_id, price, size)
+    if PLACE_OPPOSITE_ORDER and anchor_token_id:
+        for _ in range(900 * 100):
+            if in_memory_db_contains_item(anchor_order_id):
+                hedge_order_id = await place_limit_order(
+                    hedge_token_id, 1 - price - PROFIT_MARGIN, size
+                )
+                break
+            await asyncio.sleep(0.01)
 
         logger.info(f"Order prices: {price} and {1 - price - PROFIT_MARGIN}")
     else:
@@ -47,7 +52,6 @@ async def place_anchor_and_hedge(
 
 async def place_limit_order(token_id: str, price: float, size: int):
     client = get_client()
-    start_time = asyncio.get_event_loop().time()
     try:
         response = client.create_and_post_order(
             OrderArgs(
@@ -57,11 +61,10 @@ async def place_limit_order(token_id: str, price: float, size: int):
                 side=BUY,
             )
         )
+        logger.info(
+            f"Placed limit order: Token ID={token_id}, Price={price}, Size={size}, ID={response['orderID']}"
+        )
+        return response["orderID"]
     except Exception as e:
         logger.error(f"Error placing order for token {token_id}: {e}")
-        return
-    end_time = asyncio.get_event_loop().time()
-    logger.info(
-        f"Order placed! ID: {response['orderID']} in {end_time - start_time:.2f} sec"
-    )
-    return response["orderID"]
+        return None
