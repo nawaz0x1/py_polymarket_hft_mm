@@ -9,7 +9,7 @@ from utils.clob_client import init_global_client
 from utils.market_time import is_in_trading_window
 from utils.clob_orders import (
     place_anchor_and_hedge,
-    cache_tocken_trading_infos,
+    cache_token_trading_infos,
 )
 from utils.cpu_affinity import set_cpu_affinity
 from config import MAX_TRADES
@@ -37,7 +37,7 @@ async def main():
     await asyncio.sleep(2)
     up_token, down_token, market_slug = await fetch_tokens()
     book = OrderBook(up_token, down_token, market_slug)
-    await asyncio.create_task(cache_tocken_trading_infos(book))
+    await asyncio.create_task(cache_token_trading_infos(book))
     book.start()
 
     await asyncio.sleep(5)  # Allow some time for initial order book data
@@ -64,7 +64,7 @@ async def main():
             trades = 0
             up_token, down_token, market_slug = await fetch_tokens()
             book = OrderBook(up_token, down_token, market_slug)
-            asyncio.create_task(cache_tocken_trading_infos(book))
+            asyncio.create_task(cache_token_trading_infos(book))
             book.start()
 
         market_data = book.get_current_market_data()
@@ -90,7 +90,7 @@ async def main():
                     up_token,
                     down_token,
                     "UP",
-                    up_ask_price,
+                    up_bid_price,
                     size=5,
                 )
                 trades += 1
@@ -103,7 +103,7 @@ async def main():
                     up_token,
                     down_token,
                     "DOWN",
-                    down_ask_price,
+                    down_bid_price,
                     size=5,
                 )
                 trades += 1
