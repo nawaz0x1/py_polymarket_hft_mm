@@ -36,19 +36,13 @@ async def place_anchor_and_hedge(
         anchor_token_id = down_token_id
         hedge_token_id = up_token_id
 
-    anchor_order_id = await place_limit_order(anchor_token_id, price, size)
-    if PLACE_OPPOSITE_ORDER and anchor_order_id:
-        hedge_order_id = await place_limit_order(
-            hedge_token_id, 1 - price - PROFIT_MARGIN, size
-        )
-        if hedge_order_id:
-            logger.info(
-                f"Order prices: {round(price, 2)} and {round(1 - price - PROFIT_MARGIN, 2)}"
-            )
-        else:
-            logger.info("Failed to place hedge order, decrementing trade counter")
-    else:
-        decrement_trades()
+    asyncio.create_task(place_limit_order(anchor_token_id, price, size))
+    asyncio.create_task(
+        place_limit_order(hedge_token_id, 1 - price - PROFIT_MARGIN, size)
+    )
+    logger.info(
+        f"Placed anchor and hedge orders: Anchor Token ID={anchor_token_id}, Hedge Token ID={hedge_token_id}"
+    )
 
 
 async def place_limit_order(token_id: str, price: float, size: int, expire=False):
