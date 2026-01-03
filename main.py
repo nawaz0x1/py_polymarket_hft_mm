@@ -74,7 +74,7 @@ async def main():
         up_bid_price = market_data["best_bid_price"]
         up_ask_price = market_data["best_ask_price"]
 
-        if not ((0.1 < up_ask_price < 0.3) or (0.7 < up_bid_price < 0.9)):
+        if not ((0.2 < up_ask_price < 0.35) or (0.65 < up_bid_price < 0.8)):
             continue
 
         down_ask_price = 1 - up_bid_price
@@ -85,7 +85,7 @@ async def main():
         if trades < MAX_TRADES:
             trading_side = book.last_signal
 
-            if (trading_side == SIGNALES.UP) and up_trend:
+            if (trading_side == SIGNALES.UP) and not up_trend:
                 await place_anchor_and_hedge(
                     up_token,
                     down_token,
@@ -98,7 +98,7 @@ async def main():
                     f"Placed UP anchor and hedge orders. Total trades: {trades}"
                 )
 
-            elif (trading_side == SIGNALES.DOWN) and not up_trend:
+            elif (trading_side == SIGNALES.DOWN) and up_trend:
                 await place_anchor_and_hedge(
                     up_token,
                     down_token,
