@@ -80,7 +80,7 @@ async def main():
         down_ask_price = 1 - up_bid_price
         down_bid_price = 1 - up_ask_price
 
-        up_trend = up_bid_price > down_ask_price
+        up_trend = up_bid_price > down_bid_price
 
         if trades < MAX_TRADES:
             trading_side = book.last_signal
