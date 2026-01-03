@@ -26,6 +26,8 @@ async def handle_message(message):
         data = json.loads(message)
         logger.debug(f"Received Message: {data}")
         data_type = data.get("type")
+        if data_type == "PLACEMENT":
+            return
         orders_ids = []
         orders_ids.append(data.get("id"))
 
