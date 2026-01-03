@@ -5,7 +5,7 @@ import requests
 from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
 from utils.orderbook import OrderBook, SIGNALES
-from utils.clob_client import init_global_client
+from utils.clob_client import init_global_client, is_client_ready
 from utils.market_time import is_in_trading_window
 from utils.clob_orders import (
     place_anchor_and_hedge,
@@ -35,6 +35,9 @@ async def main():
     logger.info("Polymarket HFT Market Maker started")
     init_global_client()
     await asyncio.sleep(2)
+    if not is_client_ready():
+        logger.error("ClobClient is not ready. Exiting.")
+        return
     up_token, down_token, market_slug = await fetch_tokens()
     book = OrderBook(up_token, down_token, market_slug)
     await asyncio.create_task(cache_token_trading_infos(book))
