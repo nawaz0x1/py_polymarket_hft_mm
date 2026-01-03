@@ -38,7 +38,7 @@ async def place_anchor_and_hedge(
 
     anchor_order_id = await place_limit_order(anchor_token_id, price, size, expire=True)
     if PLACE_OPPOSITE_ORDER and anchor_order_id:
-        for _ in range(65 * 10):
+        for _ in range(65 * (1 / 0.05)):
             if in_memory_db_contains_item(anchor_order_id):
                 hedge_order_id = await place_limit_order(
                     hedge_token_id, 1 - price - PROFIT_MARGIN, size
@@ -47,7 +47,7 @@ async def place_anchor_and_hedge(
                     f"Order prices: {round(price, 2)} and {round(1 - price - PROFIT_MARGIN, 2)}"
                 )
                 break
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
     else:
         logger.info(f"Order price: {price} [Canceled before hedge placement]")
         decrement_trades()
