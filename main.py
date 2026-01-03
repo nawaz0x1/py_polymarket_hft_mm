@@ -7,6 +7,7 @@ from utils.tokens import fetch_tokens
 from utils.orderbook import OrderBook, SIGNALES
 from utils.clob_client import init_global_client, is_client_ready
 from utils.market_time import is_in_trading_window
+from utils.trade_counter import reset_trades, get_trades_count, increment_trades
 from utils.clob_orders import (
     place_anchor_and_hedge,
     cache_token_trading_infos,
@@ -27,8 +28,6 @@ requests.options = session.options
 
 
 async def main():
-
-    trades = 0
 
     logger = setup_logging()
     set_cpu_affinity()
@@ -64,7 +63,7 @@ async def main():
             logger.info("Trading session ended. Starting new session.")
             gc.collect()
             await asyncio.sleep(10)
-            trades = 0
+            reset_trades()
             up_token, down_token, market_slug = await fetch_tokens()
             book = OrderBook(up_token, down_token, market_slug)
             asyncio.create_task(cache_token_trading_infos(book))
@@ -85,7 +84,7 @@ async def main():
 
         up_trend = up_bid_price > down_bid_price
 
-        if trades < MAX_TRADES:
+        if get_trades_count() < MAX_TRADES:
             trading_side = book.last_signal
 
             if (trading_side == SIGNALES.UP) and not up_trend:
@@ -96,9 +95,9 @@ async def main():
                     up_bid_price,
                     size=5,
                 )
-                trades += 1
+                current_trades = increment_trades()
                 logger.info(
-                    f"Placed UP anchor and hedge orders. Total trades: {trades}"
+                    f"Placed UP anchor and hedge orders. Total trades: {current_trades}"
                 )
 
             elif (trading_side == SIGNALES.DOWN) and up_trend:
@@ -109,9 +108,9 @@ async def main():
                     down_bid_price,
                     size=5,
                 )
-                trades += 1
+                current_trades = increment_trades()
                 logger.info(
-                    f"Placed DOWN anchor and hedge orders. Total trades: {trades}"
+                    f"Placed DOWN anchor and hedge orders. Total trades: {current_trades}"
                 )
 
         await asyncio.sleep(0.01)

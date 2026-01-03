@@ -5,6 +5,7 @@ from py_clob_client.clob_types import OrderArgs, OrderType
 from py_clob_client.order_builder.constants import BUY
 from config import PROFIT_MARGIN, PLACE_OPPOSITE_ORDER
 from utils.clob_client import get_client
+from utils.trade_counter import decrement_trades
 from in_memory_db.utils import contains_item as in_memory_db_contains_item
 
 
@@ -48,6 +49,9 @@ async def place_anchor_and_hedge(
         logger.info(f"Order prices: {price} and {1 - price - PROFIT_MARGIN}")
     else:
         logger.info(f"Order price: {price}")
+
+    if anchor_order_id and not in_memory_db_contains_item(anchor_order_id):
+        decrement_trades()
 
 
 async def place_limit_order(token_id: str, price: float, size: int, expire=False):
