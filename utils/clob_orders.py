@@ -6,7 +6,6 @@ from py_clob_client.order_builder.constants import BUY
 from config import PROFIT_MARGIN, PLACE_OPPOSITE_ORDER
 from utils.clob_client import get_client
 from utils.trade_counter import decrement_trades
-from in_memory_db.utils import contains_item as in_memory_db_contains_item
 
 
 logger = logging.getLogger(__name__)

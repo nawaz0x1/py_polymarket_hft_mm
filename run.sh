@@ -1,3 +1,2 @@
-nohup in_memory_db/in_mem_db &
-nohup python order_listener.py &
+source ~/miniconda3/bin/activate
 sudo env "PATH=$PATH" python main.py 
