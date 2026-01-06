@@ -44,26 +44,18 @@ async def place_anchor_and_hedge(
     )
 
 
-async def place_limit_order(token_id: str, price: float, size: int, expire=False):
+async def place_limit_order(token_id: str, price: float, size: int):
     client = get_client()
-    expiration = 0
-    if expire:
-        one_minute = 60
-        desired_seconds = 5
-        expiration = int(time.time()) + one_minute + desired_seconds
-    try:
 
+    try:
         order_args = OrderArgs(
             token_id=token_id,
             price=price,
             size=size,
             side=BUY,
-            expiration=expiration,
         )
         signed_order = client.create_order(order_args)
-        response = client.post_order(
-            signed_order, OrderType.GTD if expire else OrderType.GTC
-        )
+        response = client.post_order(signed_order)
         logger.info(
             f"Placed limit order: Token ID={token_id}, Price={price}, Size={size}, ID={response['orderID']}"
         )
