@@ -165,7 +165,7 @@ class OrderBook:
             micro_price = (best_bid_price + best_ask_price) / 2
 
         mid_price = (best_bid_price + best_ask_price) / 2
-        micro_vs_mid_bps = (micro_price - mid_price) * 10000
+        imcro_vs_mid_bps = (micro_price - mid_price) * 10000
 
         return {
             "best_bid_price": best_bid_price,

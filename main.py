@@ -13,7 +13,7 @@ from utils.clob_orders import (
     cache_token_trading_infos,
 )
 from utils.cpu_affinity import set_cpu_affinity
-from config import MAX_TRADES
+from config import MAX_TRADES, MAX_TRADING_BPS_THRESHOLD
 
 
 gc.disable()
@@ -76,7 +76,9 @@ async def main():
         up_bid_price = market_data["best_bid_price"]
         up_ask_price = market_data["best_ask_price"]
 
-        if not ((0.2 < up_ask_price < 0.35) or (0.65 < up_bid_price < 0.8)):
+        if not ((0.2 < up_ask_price < 0.35) or (0.65 < up_bid_price < 0.8)) or (
+            market_data["micro_vs_mid_bps"] > MAX_TRADING_BPS_THRESHOLD
+        ):
             continue
 
         down_ask_price = 1 - up_bid_price
