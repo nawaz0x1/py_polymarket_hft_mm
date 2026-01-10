@@ -98,6 +98,7 @@ async def main():
                 current_trades = increment_trades()
                 logger.info(
                     f"Placed UP anchor and hedge orders. Total trades: {current_trades}"
+                    f"market_data={market_data}"
                 )
 
             elif (trading_side == SIGNALES.DOWN) and up_trend:
@@ -111,6 +112,7 @@ async def main():
                 current_trades = increment_trades()
                 logger.info(
                     f"Placed DOWN anchor and hedge orders. Total trades: {current_trades}"
+                    f"market_data={market_data}"
                 )
 
         await asyncio.sleep(0.01)
