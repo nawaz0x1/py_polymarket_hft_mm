@@ -2,7 +2,7 @@ import json
 import logging
 from multiprocessing.util import get_logger
 from typing import Optional, Tuple
-import aiohttp
+import requests
 from .slug import get_market_slug
 from config import GAMMA_API_URL, REQUEST_TIMEOUT
 
@@ -10,7 +10,7 @@ from config import GAMMA_API_URL, REQUEST_TIMEOUT
 logger = logging.getLogger(__name__)
 
 
-async def fetch_tokens(
+def fetch_tokens(
     coin: str = "btc",
 ) -> Tuple[Optional[str], Optional[str], Optional[str]]:
 
@@ -21,17 +21,14 @@ async def fetch_tokens(
         slug = get_market_slug(coin)
         url = f"{GAMMA_API_URL}/events/slug/{slug}"
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                url, timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
-            ) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return _extract_tokens(data, slug)
-                else:
-                    logger.warning(f"API request failed with status {response.status}")
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
+        if response.status_code == 200:
+            data = response.json()
+            return _extract_tokens(data, slug)
+        else:
+            logger.warning(f"API request failed with status {response.status_code}")
 
-    except aiohttp.ClientError as e:
+    except requests.exceptions.RequestException as e:
         logger.error(f"Network error fetching tokens: {e}")
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON response: {e}")

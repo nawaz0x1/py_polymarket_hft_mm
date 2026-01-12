@@ -1,6 +1,6 @@
 import os
 import gc
-import asyncio
+import time
 from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
 from utils.orderbook import OrderBook, SIGNALES
@@ -22,21 +22,21 @@ from config import (
 gc.disable()
 
 
-async def main():
+def main():
 
     logger = setup_logging()
     set_cpu_affinity()
     logger.info("Polymarket HFT Market Maker started")
     init_global_client()
-    await asyncio.sleep(2)
+    time.sleep(2)
     if not is_client_ready():
         logger.error("ClobClient is not ready. Exiting.")
         return
-    up_token, down_token, market_slug = await fetch_tokens()
+    up_token, down_token, market_slug = fetch_tokens()
     book = OrderBook(up_token, down_token, market_slug)
     book.start()
 
-    await asyncio.sleep(5)  # Allow some time for initial order book data
+    time.sleep(5)  # Allow some time for initial order book data
 
     market_data = book.get_current_market_data()
 
@@ -56,11 +56,11 @@ async def main():
             book.stop()
             logger.info("Trading session ended. Starting new session.")
             gc.collect()
-            await asyncio.sleep(10)
+            time.sleep(10)
             reset_trades()
-            up_token, down_token, market_slug = await fetch_tokens()
+            up_token, down_token, market_slug = fetch_tokens()
             book = OrderBook(up_token, down_token, market_slug)
-            asyncio.create_task(cache_token_trading_infos(book))
+            cache_token_trading_infos(book)
             book.start()
 
         market_data = book.get_current_market_data()
@@ -84,7 +84,7 @@ async def main():
             trading_side = book.last_signal
 
             if (trading_side == SIGNALES.UP) and not up_trend:
-                await place_anchor_and_hedge(
+                order_ids = place_anchor_and_hedge(
                     up_token,
                     down_token,
                     "UP",
@@ -94,12 +94,12 @@ async def main():
                 )
                 current_trades = increment_trades()
                 logger.info(
-                    f"Placed UP anchor and hedge orders. Total trades: {current_trades}"
+                    f"Placed UP anchor and hedge orders. Total trades: {current_trades}, Order IDs: {order_ids}"
                 )
-                await asyncio.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
+                time.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
 
             elif (trading_side == SIGNALES.DOWN) and up_trend:
-                await place_anchor_and_hedge(
+                order_ids = place_anchor_and_hedge(
                     up_token,
                     down_token,
                     "DOWN",
@@ -109,21 +109,16 @@ async def main():
                 )
                 current_trades = increment_trades()
                 logger.info(
-                    f"Placed DOWN anchor and hedge orders. Total trades: {current_trades}"
+                    f"Placed DOWN anchor and hedge orders. Total trades: {current_trades}, Order IDs: {order_ids}"
                 )
-                await asyncio.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
+                time.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
 
-        await asyncio.sleep(0.01)
+        time.sleep(0.01)
 
 
 if __name__ == "__main__":
     try:
-        if os.name == "nt":
-            asyncio.run(main())
-        else:
-            import uvloop
-
-            uvloop.run(main())
+        main()
     except KeyboardInterrupt:
         print("\nMarket maker stopped by user")
     except Exception as e:

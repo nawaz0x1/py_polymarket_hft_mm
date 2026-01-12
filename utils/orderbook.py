@@ -1,5 +1,4 @@
 import os
-import asyncio
 import bisect
 import time
 import json
@@ -110,7 +109,7 @@ class OrderBook:
         self.thread.start()
 
         self.monitoring_thread = threading.Thread(
-            target=lambda: asyncio.run(self._continuous_trading_monitor()), daemon=True
+            target=self._continuous_trading_monitor, daemon=True
         )
         self.monitoring_thread.start()
 
@@ -182,14 +181,14 @@ class OrderBook:
             "asks": asks,
         }
 
-    async def _continuous_trading_monitor(self):
+    def _continuous_trading_monitor(self):
         logger.info("Started continuous trading monitor")
 
         while self.monitoring_running:
             try:
                 market_data = self.get_current_market_data()
                 if not market_data:
-                    await asyncio.sleep(0.1)
+                    time.sleep(0.1)
                     continue
 
                 micro_vs_mid_bps = market_data["micro_vs_mid_bps"]
@@ -205,11 +204,11 @@ class OrderBook:
                 if current_signal and current_signal != self.last_signal:
                     self.last_signal = current_signal
 
-                await asyncio.sleep(0.005)
+                time.sleep(0.005)
 
             except Exception as e:
                 logger.error(f"Error in continuous trading monitor: {e}")
-                await asyncio.sleep(1)
+                time.sleep(1)
 
         logger.info("Stopped continuous trading monitor")
 

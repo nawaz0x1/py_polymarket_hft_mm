@@ -12,7 +12,7 @@ from utils.trade_counter import decrement_trades
 logger = logging.getLogger(__name__)
 
 
-async def cache_token_trading_infos(
+def cache_token_trading_infos(
     order_book,
 ) -> None:
     client = get_client()
@@ -26,7 +26,7 @@ async def cache_token_trading_infos(
     client.get_fee_rate_bps(down_token_id)
 
 
-async def place_anchor_and_hedge(
+def place_anchor_and_hedge(
     up_token_id, down_token_id, anchor_side, price, size=5, signed_orders_cache=None
 ):
     if anchor_side == "UP":
@@ -36,31 +36,29 @@ async def place_anchor_and_hedge(
         anchor_token_id = down_token_id
         hedge_token_id = up_token_id
 
-    loop = asyncio.get_event_loop()
     with ThreadPoolExecutor(max_workers=2) as executor:
-        tasks = [
-            loop.run_in_executor(
-                executor,
-                place_limit_order_sync,
-                anchor_token_id,
-                price,
-                size,
-                signed_orders_cache,
-            ),
-            loop.run_in_executor(
-                executor,
-                place_limit_order_sync,
-                hedge_token_id,
-                round(1 - price - PROFIT_MARGIN, 2),
-                size,
-                signed_orders_cache,
-            ),
-        ]
-        order_ids = await asyncio.gather(*tasks)
+        future1 = executor.submit(
+            place_limit_order_sync,
+            anchor_token_id,
+            price,
+            size,
+            signed_orders_cache,
+        )
+        future2 = executor.submit(
+            place_limit_order_sync,
+            hedge_token_id,
+            round(1 - price - PROFIT_MARGIN, 2),
+            size,
+            signed_orders_cache,
+        )
+        
+        # Wait for both to complete
+        order_ids = [future1.result(), future2.result()]
 
     logger.info(
         f"Placed anchor and hedge orders: Anchor Token ID={anchor_token_id}, Hedge Token ID={hedge_token_id}, Order IDs={order_ids}"
     )
+    return order_ids
 
 
 def place_limit_order_sync(
@@ -93,8 +91,4 @@ def place_limit_order_sync(
         return None
 
 
-async def place_limit_order(
-    token_id: str, price: float, size: int = 5, signed_orders_cache=None
-) -> str:
-    """Async wrapper for backwards compatibility"""
-    return place_limit_order_sync(token_id, price, size, signed_orders_cache)
+
