@@ -1,7 +1,6 @@
 import os
 import gc
 import asyncio
-import requests
 from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
 from utils.orderbook import OrderBook, SIGNALES
@@ -21,14 +20,6 @@ from config import (
 
 
 gc.disable()
-session = requests.Session()
-requests.get = session.get
-requests.post = session.post
-requests.put = session.put
-requests.patch = session.patch
-requests.delete = session.delete
-requests.head = session.head
-requests.options = session.options
 
 
 async def main():
