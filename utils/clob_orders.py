@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor
 from py_clob_client.clob_types import OrderArgs, OrderType
 from py_clob_client.order_builder.constants import BUY
 from config import PROFIT_MARGIN, PLACE_OPPOSITE_ORDER
@@ -35,25 +36,37 @@ async def place_anchor_and_hedge(
         anchor_token_id = down_token_id
         hedge_token_id = up_token_id
 
-    asyncio.create_task(
-        place_limit_order(anchor_token_id, price, size, signed_orders_cache)
-    )
-    asyncio.create_task(
-        place_limit_order(
-            hedge_token_id,
-            round(1 - price - PROFIT_MARGIN, 2),
-            size,
-            signed_orders_cache,
-        )
-    )
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        tasks = [
+            loop.run_in_executor(
+                executor,
+                place_limit_order_sync,
+                anchor_token_id,
+                price,
+                size,
+                signed_orders_cache,
+            ),
+            loop.run_in_executor(
+                executor,
+                place_limit_order_sync,
+                hedge_token_id,
+                round(1 - price - PROFIT_MARGIN, 2),
+                size,
+                signed_orders_cache,
+            ),
+        ]
+        order_ids = await asyncio.gather(*tasks)
+
     logger.info(
-        f"Placed anchor and hedge orders: Anchor Token ID={anchor_token_id}, Hedge Token ID={hedge_token_id}"
+        f"Placed anchor and hedge orders: Anchor Token ID={anchor_token_id}, Hedge Token ID={hedge_token_id}, Order IDs={order_ids}"
     )
 
 
-async def place_limit_order(
+def place_limit_order_sync(
     token_id: str, price: float, size: int = 5, signed_orders_cache=None
 ) -> str:
+    """Synchronous version of place_limit_order for use with ThreadPoolExecutor"""
     client = get_client()
 
     try:
@@ -78,3 +91,10 @@ async def place_limit_order(
     except Exception as e:
         logger.error(f"Error placing order for token {token_id}: {e}")
         return None
+
+
+async def place_limit_order(
+    token_id: str, price: float, size: int = 5, signed_orders_cache=None
+) -> str:
+    """Async wrapper for backwards compatibility"""
+    return place_limit_order_sync(token_id, price, size, signed_orders_cache)
