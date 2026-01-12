@@ -26,7 +26,7 @@ async def cache_token_trading_infos(
 
 
 async def place_anchor_and_hedge(
-    up_token_id, down_token_id, anchor_side, price, size=5
+    up_token_id, down_token_id, anchor_side, price, size=5, signed_orders_cache=None
 ):
     if anchor_side == "UP":
         anchor_token_id = up_token_id
@@ -35,26 +35,41 @@ async def place_anchor_and_hedge(
         anchor_token_id = down_token_id
         hedge_token_id = up_token_id
 
-    asyncio.create_task(place_limit_order(anchor_token_id, price, size))
     asyncio.create_task(
-        place_limit_order(hedge_token_id, 1 - price - PROFIT_MARGIN, size)
+        place_limit_order(anchor_token_id, price, size, signed_orders_cache)
+    )
+    asyncio.create_task(
+        place_limit_order(
+            hedge_token_id,
+            round(1 - price - PROFIT_MARGIN, 2),
+            size,
+            signed_orders_cache,
+        )
     )
     logger.info(
         f"Placed anchor and hedge orders: Anchor Token ID={anchor_token_id}, Hedge Token ID={hedge_token_id}"
     )
 
 
-async def place_limit_order(token_id: str, price: float, size: int):
+async def place_limit_order(
+    token_id: str, price: float, size: int = 5, signed_orders_cache=None
+) -> str:
     client = get_client()
 
     try:
-        order_args = OrderArgs(
-            token_id=token_id,
-            price=price,
-            size=size,
-            side=BUY,
-        )
-        signed_order = client.create_order(order_args)
+        if signed_orders_cache and (token_id, price) in signed_orders_cache:
+            signed_order = signed_orders_cache[(token_id, price)]
+            logger.info(
+                f"Using cached signed order for Token ID={token_id}, Price={price}"
+            )
+        else:
+            order_args = OrderArgs(
+                token_id=token_id,
+                price=price,
+                size=size,
+                side=BUY,
+            )
+            signed_order = client.create_order(order_args)
         response = client.post_order(signed_order)
         logger.info(
             f"Placed limit order: Token ID={token_id}, Price={price}, Size={size}, ID={response['orderID']}"

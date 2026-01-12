@@ -8,6 +8,8 @@ import threading
 import websocket
 from enum import Enum
 from config import POLYMARKET_WS_MARKET_URL, TRADING_BPS_THRESHOLD
+from py_clob_client import OrderArgs
+from py_clob_client.order_builder.constants import BUY
 from utils.clob_client import get_client
 
 logger = logging.getLogger(__name__)
@@ -33,6 +35,8 @@ class OrderBook:
             "last_update": None,
             "order_book": {"bids": [], "asks": []},
         }
+
+        self.signed_orders_cache = {}
 
         self.ws = None
         self.running = False
@@ -108,6 +112,7 @@ class OrderBook:
             target=lambda: asyncio.run(self._continuous_trading_monitor()), daemon=True
         )
         self.monitoring_thread.start()
+        asyncio.create_task(self.create_signed_orders_cache())
 
         logger.info("WebSocket price stream and trading monitor started")
 
@@ -207,6 +212,28 @@ class OrderBook:
                 await asyncio.sleep(1)
 
         logger.info("Stopped continuous trading monitor")
+
+    async def create_signed_orders_cache(self):
+        start = time.time()
+        prices = [0.01]
+        while prices[-1] < 0.99:
+            prices.append(round(prices[-1] + 0.01, 2))
+
+        client = get_client()
+        for price in prices:
+            for token_id in [self.up_token_id, self.down_token_id]:
+                order_args = OrderArgs(
+                    token_id=token_id,
+                    price=price,
+                    size=5,
+                    side=BUY,
+                )
+                signed_order = client.create_order(order_args)
+                self.signed_orders_cache[(token_id, price)] = signed_order
+        end = time.time()
+        logger.info(
+            f"Pre-created signed orders cache for tokens in {round((end - start) * 1000)} milliseconds"
+        )
 
     def clear_screen(self):
         os.system("cls" if os.name == "nt" else "clear")

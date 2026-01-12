@@ -77,7 +77,7 @@ async def main():
         up_ask_price = market_data["best_ask_price"]
 
         if not ((0.2 < up_ask_price < 0.35) or (0.65 < up_bid_price < 0.8)) or (
-            market_data["micro_vs_mid_bps"] > MAX_TRADING_BPS_THRESHOLD
+            abs(market_data["micro_vs_mid_bps"]) > MAX_TRADING_BPS_THRESHOLD
         ):
             continue
 
@@ -94,13 +94,13 @@ async def main():
                     up_token,
                     down_token,
                     "UP",
-                    up_bid_price,
+                    round(up_bid_price, 2),
                     size=5,
+                    signed_orders_cache=book.signed_orders_cache,
                 )
                 current_trades = increment_trades()
                 logger.info(
                     f"Placed UP anchor and hedge orders. Total trades: {current_trades}"
-                    f"market_data={market_data}"
                 )
 
             elif (trading_side == SIGNALES.DOWN) and up_trend:
@@ -108,13 +108,13 @@ async def main():
                     up_token,
                     down_token,
                     "DOWN",
-                    down_bid_price,
+                    round(down_bid_price, 2),
                     size=5,
+                    signed_orders_cache=book.signed_orders_cache,
                 )
                 current_trades = increment_trades()
                 logger.info(
                     f"Placed DOWN anchor and hedge orders. Total trades: {current_trades}"
-                    f"market_data={market_data}"
                 )
 
         await asyncio.sleep(0.01)
