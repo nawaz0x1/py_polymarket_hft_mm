@@ -47,7 +47,7 @@ class OrderBook:
         self.monitoring_running = False
 
         self.last_signal = SIGNALES.NEUTRAL
-        asyncio.create_task(self.create_signed_orders_cache())
+        self.create_signed_orders_cache()
 
     def _on_message(self, ws, message):
 
@@ -213,7 +213,7 @@ class OrderBook:
 
         logger.info("Stopped continuous trading monitor")
 
-    async def create_signed_orders_cache(self):
+    def create_signed_orders_cache(self):
         start = time.time()
         prices = [0.01]
         while prices[-1] < 0.99:
