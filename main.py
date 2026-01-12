@@ -13,7 +13,11 @@ from utils.clob_orders import (
     cache_token_trading_infos,
 )
 from utils.cpu_affinity import set_cpu_affinity
-from config import MAX_TRADES, MAX_TRADING_BPS_THRESHOLD
+from config import (
+    MAX_TRADES,
+    MAX_TRADING_BPS_THRESHOLD,
+    MIN_DELAY_BETWEEN_TRADES_SECONDS,
+)
 
 
 gc.disable()
@@ -102,6 +106,7 @@ async def main():
                 logger.info(
                     f"Placed UP anchor and hedge orders. Total trades: {current_trades}"
                 )
+                await asyncio.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
 
             elif (trading_side == SIGNALES.DOWN) and up_trend:
                 await place_anchor_and_hedge(
@@ -116,6 +121,7 @@ async def main():
                 logger.info(
                     f"Placed DOWN anchor and hedge orders. Total trades: {current_trades}"
                 )
+                await asyncio.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
 
         await asyncio.sleep(0.01)
 
