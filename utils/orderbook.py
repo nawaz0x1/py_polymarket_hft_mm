@@ -47,6 +47,7 @@ class OrderBook:
         self.monitoring_running = False
 
         self.last_signal = SIGNALES.NEUTRAL
+        asyncio.create_task(self.create_signed_orders_cache())
 
     def _on_message(self, ws, message):
 
@@ -112,7 +113,6 @@ class OrderBook:
             target=lambda: asyncio.run(self._continuous_trading_monitor()), daemon=True
         )
         self.monitoring_thread.start()
-        asyncio.create_task(self.create_signed_orders_cache())
 
         logger.info("WebSocket price stream and trading monitor started")
 
