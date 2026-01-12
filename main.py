@@ -43,7 +43,6 @@ async def main():
         return
     up_token, down_token, market_slug = await fetch_tokens()
     book = OrderBook(up_token, down_token, market_slug)
-    await asyncio.create_task(cache_token_trading_infos(book))
     book.start()
 
     await asyncio.sleep(5)  # Allow some time for initial order book data
