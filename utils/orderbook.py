@@ -146,7 +146,7 @@ class OrderBook:
                 self.inventory = get_inventory(self.slug)
             except Exception as e:
                 logger.error(f"Error updating inventory: {e}")
-            time.sleep(2)
+            time.sleep(1)
         logger.info("Stopped inventory updater thread")
 
     def is_connected(self):
