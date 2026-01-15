@@ -11,5 +11,4 @@ def get_inventory(slug=None):
     for pos in response:
         if pos and pos.get("slug") == slug:
             size += pos.get("size")
-            print(pos)
     return round(size / 5)
