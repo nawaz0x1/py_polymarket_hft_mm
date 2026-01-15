@@ -83,7 +83,7 @@ def main():
         if get_trades_count() < MAX_TRADES:
             trading_side = book.last_signal
 
-            if (trading_side == SIGNALES.UP) and up_trend:
+            if (trading_side == SIGNALES.UP) and not up_trend:
                 order_ids = place_anchor_and_hedge(
                     up_token,
                     down_token,
@@ -98,7 +98,7 @@ def main():
                 )
                 time.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
 
-            elif (trading_side == SIGNALES.DOWN) and not up_trend:
+            elif (trading_side == SIGNALES.DOWN) and up_trend:
                 order_ids = place_anchor_and_hedge(
                     up_token,
                     down_token,
