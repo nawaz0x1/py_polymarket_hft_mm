@@ -78,12 +78,10 @@ def main():
         down_ask_price = 1 - up_bid_price
         down_bid_price = 1 - up_ask_price
 
-        up_trend = up_bid_price > down_bid_price
-
         if (get_trades_count() < MAX_TRADES) and (get_period_elapsed_seconds() < 500):
             trading_side = book.last_signal
 
-            if (trading_side == SIGNALES.UP) and not up_trend:
+            if trading_side == SIGNALES.UP:
                 order_ids = place_anchor_and_hedge(
                     up_token,
                     down_token,
@@ -98,7 +96,7 @@ def main():
                 )
                 time.sleep(MIN_DELAY_BETWEEN_TRADES_SECONDS)
 
-            elif (trading_side == SIGNALES.DOWN) and up_trend:
+            elif trading_side == SIGNALES.DOWN:
                 order_ids = place_anchor_and_hedge(
                     up_token,
                     down_token,
