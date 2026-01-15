@@ -5,7 +5,7 @@ from utils.logger import setup_logging
 from utils.tokens import fetch_tokens
 from utils.orderbook import OrderBook, SIGNALES
 from utils.clob_client import init_global_client, is_client_ready
-from utils.market_time import is_in_trading_window
+from utils.market_time import is_in_trading_window, get_period_elapsed_seconds
 from utils.trade_counter import reset_trades, get_trades_count, increment_trades
 from utils.clob_orders import (
     place_anchor_and_hedge,
@@ -80,7 +80,7 @@ def main():
 
         up_trend = up_bid_price > down_bid_price
 
-        if get_trades_count() < MAX_TRADES:
+        if (get_trades_count() < MAX_TRADES) and (get_period_elapsed_seconds() < 500):
             trading_side = book.last_signal
 
             if (trading_side == SIGNALES.UP) and not up_trend:
