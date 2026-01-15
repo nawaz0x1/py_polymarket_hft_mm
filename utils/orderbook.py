@@ -10,6 +10,7 @@ from config import POLYMARKET_WS_MARKET_URL, TRADING_BPS_THRESHOLD
 from py_clob_client import OrderArgs
 from py_clob_client.order_builder.constants import BUY
 from utils.clob_client import get_client
+from utils.inventory import get_inventory
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,9 @@ class OrderBook:
         self.monitoring_running = False
 
         self.last_signal = SIGNALES.NEUTRAL
+        self.inventory = 0
+        self.inventory_thread = None
+        self.inventory_running = False
         self.create_signed_orders_cache()
 
     def _on_message(self, ws, message):
@@ -104,6 +108,7 @@ class OrderBook:
 
         self.running = True
         self.monitoring_running = True
+        self.inventory_running = True
 
         self.thread = threading.Thread(target=self._connect, daemon=True)
         self.thread.start()
@@ -113,16 +118,36 @@ class OrderBook:
         )
         self.monitoring_thread.start()
 
-        logger.info("WebSocket price stream and trading monitor started")
+        self.inventory_thread = threading.Thread(
+            target=self._inventory_updater, daemon=True
+        )
+        self.inventory_thread.start()
+
+        logger.info(
+            "WebSocket price stream, trading monitor, and inventory updater started"
+        )
 
     def stop(self):
         self.running = False
         self.monitoring_running = False
+        self.inventory_running = False
 
         if self.ws:
             self.ws.close()
 
-        logger.info("🛑 WebSocket price stream and trading monitor stopped")
+        logger.info(
+            "🛑 WebSocket price stream, trading monitor, and inventory updater stopped"
+        )
+
+    def _inventory_updater(self):
+        logger.info("Started inventory updater thread")
+        while self.inventory_running:
+            try:
+                self.inventory = get_inventory(self.slug)
+            except Exception as e:
+                logger.error(f"Error updating inventory: {e}")
+            time.sleep(2)
+        logger.info("Stopped inventory updater thread")
 
     def is_connected(self):
         with self.lock:

@@ -16,6 +16,7 @@ from config import (
     MAX_TRADES,
     MAX_TRADING_BPS_THRESHOLD,
     MIN_DELAY_BETWEEN_TRADES_SECONDS,
+    MAX_INVENTORY
 )
 
 
@@ -46,7 +47,7 @@ def main():
     down_bid_price = 1 - up_ask_price
 
     print(
-        f"Initial Prices - UP: {up_bid_price:.2f}/{up_ask_price:.2f} | DOWN: {down_bid_price:.2f}/{down_ask_price:.2f}",
+        f"Initial Prices - UP: {up_bid_price:.2f}/{up_ask_price:.2f} | DOWN: {down_bid_price:.2f}/{down_ask_price:.2f} | Inventory: {book.inventory} / {MAX_INVENTORY}",
         flush=True,
     )
 
@@ -78,7 +79,7 @@ def main():
         down_ask_price = 1 - up_bid_price
         down_bid_price = 1 - up_ask_price
 
-        if (get_trades_count() < MAX_TRADES) and (get_period_elapsed_seconds() < 500):
+        if (get_trades_count() < MAX_TRADES) and (get_period_elapsed_seconds() < 500) and (book.inventory < MAX_INVENTORY):
             trading_side = book.last_signal
 
             if trading_side == SIGNALES.UP:
