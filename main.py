@@ -16,7 +16,8 @@ from config import (
     MAX_TRADES,
     MAX_TRADING_BPS_THRESHOLD,
     MIN_DELAY_BETWEEN_TRADES_SECONDS,
-    MAX_INVENTORY
+    MAX_INVENTORY,
+    PROFIT_MARGIN,
 )
 
 
@@ -79,7 +80,11 @@ def main():
         down_ask_price = 1 - up_bid_price
         down_bid_price = 1 - up_ask_price
 
-        if (get_trades_count() < MAX_TRADES) and (get_period_elapsed_seconds() < 500) and (book.inventory < MAX_INVENTORY):
+        if (
+            (get_trades_count() < MAX_TRADES)
+            and (get_period_elapsed_seconds() < 500)
+            and (book.inventory < MAX_INVENTORY)
+        ):
             trading_side = book.last_signal
 
             if trading_side == SIGNALES.UP:
@@ -92,6 +97,9 @@ def main():
                     signed_orders_cache=book.signed_orders_cache,
                 )
                 current_trades = increment_trades()
+                book.update_signed_orders_cache(
+                    [round(up_bid_price, 2), round(1 - up_bid_price - PROFIT_MARGIN, 2)]
+                )
                 logger.info(
                     f"Placed UP anchor and hedge orders. Total trades: {current_trades}, Order IDs: {order_ids}"
                 )
@@ -107,6 +115,9 @@ def main():
                     signed_orders_cache=book.signed_orders_cache,
                 )
                 current_trades = increment_trades()
+                book.update_signed_orders_cache(
+                    [round(down_bid_price, 2), round(1 - down_bid_price - PROFIT_MARGIN, 2)]
+                )
                 logger.info(
                     f"Placed DOWN anchor and hedge orders. Total trades: {current_trades}, Order IDs: {order_ids}"
                 )

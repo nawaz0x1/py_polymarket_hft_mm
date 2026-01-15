@@ -259,6 +259,20 @@ class OrderBook:
             f"Pre-created signed orders cache for tokens in {round((end - start) * 1000)} milliseconds"
         )
 
+    def update_signed_orders_cache(self, prices):
+        client = get_client()
+        for price in prices:
+            for token_id in [self.up_token_id, self.down_token_id]:
+                order_args = OrderArgs(
+                    token_id=token_id,
+                    price=price,
+                    size=5,
+                    side=BUY,
+                )
+                signed_order = client.create_order(order_args)
+                self.signed_orders_cache[(token_id, price)] = signed_order
+        logger.info(f"Updated signed orders cache for new prices: {prices}")
+
     def clear_screen(self):
         os.system("cls" if os.name == "nt" else "clear")
 
